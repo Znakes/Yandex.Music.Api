@@ -9,9 +9,7 @@ namespace Yandex.Music.Api.Extensions
     public static string GetString(this JToken json, string name)
     {
       if (!json.ContainField(name))
-      {
-        Console.WriteLine($"Not found filed {name}");
-        
+      {        
         return null;
       }
 
@@ -21,9 +19,7 @@ namespace Yandex.Music.Api.Extensions
     public static int? GetInt(this JToken json, string name)
     {
       if (!json.ContainField(name))
-      {
-        Console.WriteLine($"Not found filed {name}");
-        
+      {        
         return null;
       }
 
@@ -38,9 +34,7 @@ namespace Yandex.Music.Api.Extensions
     public static bool? GetBool(this JToken json, string name)
     {
       if (!json.ContainField(name))
-      {
-        Console.WriteLine($"Not found filed {name}");
-        
+      {        
         return null;
       }
 
