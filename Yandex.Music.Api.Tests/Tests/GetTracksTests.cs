@@ -1,9 +1,11 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using FluentAssertions;
 using Serilog;
 using Xunit;
 using Xunit.Abstractions;
+using Yandex.Music.Api.Tests.Enviromental;
 using Yandex.Music.Api.Tests.Traits;
 
 namespace Yandex.Music.Api.Tests.Tests
@@ -13,7 +15,8 @@ namespace Yandex.Music.Api.Tests.Tests
   {
     public GetTracksTests(YandexTestHarness fixture, ITestOutputHelper output) : base(fixture, output)
     {
-      Api.Authorize("login", "123");
+        var (username, password) = Credentials.GetCredentials();
+        Api.Authorize(username, password);
     }
 
     [Fact, YandexTrait(TraitGroup.GetTracks)]

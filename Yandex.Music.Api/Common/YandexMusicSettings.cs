@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using Yandex.Music.Api.Models;
@@ -56,6 +57,15 @@ namespace Yandex.Music.Api.Common
                 $"&page={page}&ncrnd=0.7060701951464323&lang=ru&external-domain=music.yandex.ru&overembed=false");
 
             return new Uri(urlSearch.ToString());
+        }
+
+        public Uri GetInnerDownloadTrackInfoURLv2_1(YandexTrack track)
+        {
+            var timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            return new Uri(string.Format("https://music.yandex.ru/api/v2.1/handlers/track/{0}:{1}/web-own_playlists-playlist-track-fridge/download/m?hq=1&external-domain=music.yandex.ru&overembed=no&__t={2}",
+                track.Id,
+                track.Albums.First().Id,
+                timestamp));
         }
 
         public Uri GetDownloadTrackInfoURL(string storageDir, string fileName)

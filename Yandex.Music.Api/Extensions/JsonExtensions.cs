@@ -10,7 +10,7 @@ namespace Yandex.Music.Api.Extensions
     {
       if (!json.ContainField(name))
       {
-        Console.WriteLine($"Not found filed {name} into: \n{json}");
+        Console.WriteLine($"Not found filed {name}");
         
         return null;
       }
@@ -22,7 +22,7 @@ namespace Yandex.Music.Api.Extensions
     {
       if (!json.ContainField(name))
       {
-        Console.WriteLine($"Not found filed {name} into: \n{json}");
+        Console.WriteLine($"Not found filed {name}");
         
         return null;
       }
@@ -39,7 +39,7 @@ namespace Yandex.Music.Api.Extensions
     {
       if (!json.ContainField(name))
       {
-        Console.WriteLine($"Not found filed {name} into: \n{json}");
+        Console.WriteLine($"Not found filed {name}");
         
         return null;
       }
