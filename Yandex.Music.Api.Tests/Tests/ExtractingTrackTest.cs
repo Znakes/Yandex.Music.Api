@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -6,6 +7,7 @@ using FluentAssertions;
 using Xunit;
 using Xunit.Abstractions;
 using Yandex.Music.Api.Models;
+using Yandex.Music.Api.Tests.Enviromental;
 using Yandex.Music.Api.Tests.Traits;
 
 namespace Yandex.Music.Api.Tests.Tests
@@ -21,8 +23,7 @@ namespace Yandex.Music.Api.Tests.Tests
     {
       if (!Directory.Exists(FolderData))
         Directory.CreateDirectory(FolderData);
-      
-      Api.Authorize("login", "123");
+
       Track = Api.GetListFavorites().FirstOrDefault();
       PathFile = $"{FolderData}/{Track.Title}.mp3";
     }
@@ -56,8 +57,16 @@ namespace Yandex.Music.Api.Tests.Tests
       var byteData = Api.ExtractDataTrack(Track);
       byteData.Length.Should().BeGreaterOrEqualTo(Track.FileSize.Value);
     }
-    
-    [Fact, YandexTrait(TraitGroup.ExtractTrack)]
+
+    [Fact, YandexTrait(TraitGroup.ExtractTrack, TraitGroup.SearchTracks)]
+    public void SearchTrack_ExtractByteData_ReturnByteTrack()
+    {
+      var track = Api.SearchTrack("master of puppets");
+      var byteData = Api.ExtractDataTrack(track.First());
+      byteData.Length.Should().BeGreaterOrEqualTo(Track.FileSize.Value);
+    }
+
+        [Fact, YandexTrait(TraitGroup.ExtractTrack)]
     public void ExtractingTrack_ExtractStream_ReturnStream()
     {
       var stream = Api.ExtractStreamTrack(Track);
@@ -74,12 +83,9 @@ namespace Yandex.Music.Api.Tests.Tests
 
         isComplated = true;
       };
-      
-      Thread.Sleep(200);
-      stream.Length.Should().NotBe(0);
 
       Task.WaitAll(stream.Task);
-
+      stream.Length.Should().NotBe(0);
       isComplated.Should().BeTrue();
       fileSizeFromStream.Should().BeGreaterOrEqualTo(Track.FileSize.Value);
     }

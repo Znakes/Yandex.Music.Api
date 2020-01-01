@@ -1,6 +1,8 @@
 ﻿using FluentAssertions;
+using System;
 using Xunit;
 using Xunit.Abstractions;
+using Yandex.Music.Api.Tests.Enviromental;
 using Yandex.Music.Api.Tests.Traits;
 
 namespace Yandex.Music.Api.Tests.Tests
@@ -15,8 +17,9 @@ namespace Yandex.Music.Api.Tests.Tests
     [Fact, YandexTrait(TraitGroup.Authorize)]
     public void Authorize_ValidData_GenerateTrue()
     {
-      var isAuthorized = Api.Authorize("login", "123");
-      
+      var (username, password) = Credentials.GetCredentials();
+      var isAuthorized = Api.Authorize(username, password);
+
       isAuthorized.Should().BeTrue();
     }
     

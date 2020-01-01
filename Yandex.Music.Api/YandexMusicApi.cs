@@ -6,9 +6,11 @@ using System.Net;
 using System.Text;
 using System.Web;
 using System.Xml.Linq;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Yandex.Music.Api.Common;
 using Yandex.Music.Api.Models;
+using Yandex.Music.Api.Models.Internals;
 
 namespace Yandex.Music.Api
 {
@@ -160,7 +162,7 @@ namespace Yandex.Music.Api
     {
       try
       {
-        var trackDonloadInfo = GetDownloadTrackInfo(track.StorageDir);
+        var trackDonloadInfo = GetDownloadTrackInfo(track);
         var trackDownloadUrl = _settings.GetURLDownloadTrack(track, trackDonloadInfo);
         var isNetworing = System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable();
         
@@ -181,7 +183,7 @@ namespace Yandex.Music.Api
 
     public YandexStreamTrack ExtractStreamTrack(YandexTrack track)
     {
-      var trackDonloadInfo = GetDownloadTrackInfo(track.StorageDir);
+      var trackDonloadInfo = GetDownloadTrackInfo(track);
       var trackDownloadUrl = _settings.GetURLDownloadTrack(track, trackDonloadInfo);
 
       var isNetworing = System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable();
@@ -191,7 +193,7 @@ namespace Yandex.Music.Api
 
     public byte[] ExtractDataTrack(YandexTrack track)
     {
-      var trackDonloadInfo = GetDownloadTrackInfo(track.StorageDir);
+      var trackDonloadInfo = GetDownloadTrackInfo(track);
       var trackDownloadUrl = _settings.GetURLDownloadTrack(track, trackDonloadInfo);
       byte[] bytes;
       
@@ -275,10 +277,10 @@ namespace Yandex.Music.Api
       return listResult;
     }
 
-    protected YandexTrackDownloadInfo GetDownloadTrackInfo(string storageDir)
+    protected YandexTrackDownloadInfo GetDownloadTrackInfo(YandexTrack track)
     {
-      var fileName = GetDownloadTrackInfoFileName(storageDir);
-      var request = GetRequest(_settings.GetDownloadTrackInfoURL(storageDir, fileName));
+      var internalLink = GetYandexInternalDownloadLink(track);
+      var request = GetRequest(internalLink.Src, WebRequestMethods.Http.Get, false);
       var trackDownloadInfo = new YandexTrackDownloadInfo();
 
       using (var response = (HttpWebResponse) request.GetResponse())
@@ -307,33 +309,20 @@ namespace Yandex.Music.Api
       return trackDownloadInfo;
     }
 
-    protected string GetDownloadTrackInfoFileName(string storageDir)
+    protected YandexInternalDownloadLink GetYandexInternalDownloadLink(YandexTrack track)
     {
-      var request = GetRequest(_settings.GetURLDownloadFile(storageDir), WebRequestMethods.Http.Get);
-      var fileName = "";
-      var trackLength = 0;
-      
-      using (var response = (HttpWebResponse) request.GetResponse())
-      {
-        using (var stream = response.GetResponseStream())
+        var request = GetRequest(_settings.GetInnerDownloadTrackInfoURLv2_1(track), "GET", false);
+        request.Headers.Add("X-Retpath-Y", "https%3A%2F%2Fmusic.yandex.ru");
+
+        using (var response = (HttpWebResponse)request.GetResponse())
         {
-          var reader = new StreamReader(stream);
-          var sourceText = reader.ReadLine();
-          sourceText = reader.ReadLine();
-
-          var xElem = XDocument.Parse(sourceText).Root;
-          var attrs = xElem.Attributes()
-            .Where(a => !a.IsNamespaceDeclaration)
-            .Select(a => new XAttribute(a.Name.LocalName, a.Value))
-            .ToList();
-
-          _cookies.Add(response.Cookies);
-          fileName = attrs.First().Value;
-          trackLength = int.Parse(attrs.Last().Value.ToString());
+            using (var stream = response.GetResponseStream())
+            {
+                var reader = new StreamReader(stream);
+                var sourceText = reader.ReadToEnd();
+                return JsonConvert.DeserializeObject<YandexInternalDownloadLink>(sourceText);
+            }
         }
-      }
-
-      return fileName;
     }
 
     protected JToken GetDataFromResponse(HttpWebResponse response)
@@ -350,9 +339,9 @@ namespace Yandex.Music.Api
       return JToken.Parse(result);
     }
     
-    protected virtual HttpWebRequest GetRequest(Uri uri, string method)
+    protected virtual HttpWebRequest GetRequest(Uri uri, string method, bool useHeaders = true)
     {
-      var request = HttpWebRequest.CreateHttp(uri);
+      var request = WebRequest.CreateHttp(uri);
       
       if (WebProxy != null)
       {
@@ -366,10 +355,14 @@ namespace Yandex.Music.Api
       }
 
       request.CookieContainer = _cookies;
-      request.KeepAlive = true;
-      request.Headers[HttpRequestHeader.AcceptCharset] = Encoding.UTF8.WebName;
-      request.Headers[HttpRequestHeader.AcceptEncoding] = "gzip";
-      request.AutomaticDecompression = DecompressionMethods.GZip;
+
+      if (useHeaders)
+      {
+          request.KeepAlive = true;
+          request.Headers[HttpRequestHeader.AcceptCharset] = Encoding.UTF8.WebName;
+          request.Headers[HttpRequestHeader.AcceptEncoding] = "gzip";
+          request.AutomaticDecompression = DecompressionMethods.GZip;
+      }
 
       return request;
     }
