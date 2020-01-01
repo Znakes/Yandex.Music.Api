@@ -24,4 +24,4 @@ jobs:
         env: 
           Yandex_Secret_Pass: ${{ secrets.Yandex_Secret_Pass }}
           Yandex_Secret_User: ${{ secrets.Yandex_Secret_User }}
-        run: dotnet test
+        run: dotnet test -v n

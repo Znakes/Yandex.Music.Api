@@ -12,14 +12,12 @@ namespace Yandex.Music.Api.Tests
 
   public class YandexTest 
   {
-    public YandexApi Api { get; set; }
+    public YandexApi Api => this.Fixture.Api;
     public YandexTestHarness Fixture { get; set; }
 
     public YandexTest(YandexTestHarness fixture, ITestOutputHelper output = null)
     {
       Fixture = fixture;
-
-      Api = new YandexMusicApi();
       
       if (output != null)
       {

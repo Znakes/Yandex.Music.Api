@@ -24,8 +24,6 @@ namespace Yandex.Music.Api.Tests.Tests
       if (!Directory.Exists(FolderData))
         Directory.CreateDirectory(FolderData);
 
-      var (username, password) = Credentials.GetCredentials();
-      Api.Authorize(username, password);
       Track = Api.GetListFavorites().FirstOrDefault();
       PathFile = $"{FolderData}/{Track.Title}.mp3";
     }
@@ -85,12 +83,9 @@ namespace Yandex.Music.Api.Tests.Tests
 
         isComplated = true;
       };
-      
-      Thread.Sleep(200);
-      stream.Length.Should().NotBe(0);
 
       Task.WaitAll(stream.Task);
-
+      stream.Length.Should().NotBe(0);
       isComplated.Should().BeTrue();
       fileSizeFromStream.Should().BeGreaterOrEqualTo(Track.FileSize.Value);
     }
